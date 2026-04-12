@@ -1,1 +1,31 @@
-{\n  "name": "NUMO-Roku-Portal-v2",\n  "private": true,\n  "workspaces": [\n    "packages/*"\n  ]\n}\n
+﻿{
+  "name": "numo-roku-portal-v2",
+  "version": "2.0.0",
+  "description": "Commercial-grade semantic streaming deployment package for Roku devices",
+  "private": true,
+  "packageManager": "pnpm@8.0.0",
+  "scripts": {
+    "dev:desktop": "cd desktop && npm run tauri dev",
+    "build:desktop": "cd desktop && npm run tauri build",
+    "build:android": "cd mobile && ./gradlew build",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format"
+  },
+  "workspaces": [
+    "desktop",
+    "mobile",
+    "semantic-engine",
+    "python-controller"
+  ],
+  "author": "Lumen Helix Solutions",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
