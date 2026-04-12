@@ -1,0 +1,1 @@
+{\n  "name": "NUMO-Roku-Portal-v2",\n  "private": true,\n  "workspaces": [\n    "packages/*"\n  ]\n}\n
