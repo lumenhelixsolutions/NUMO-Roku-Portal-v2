@@ -1,0 +1,25 @@
+[package]
+name = "numo-portal"
+version = "2.0.0"
+description = "NUMO Roku Portal - Semantic Streaming for Roku Devices"
+authors = ["Lumen Helix Solutions"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.60"
+default-run = "numo-portal"
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tauri = { version = "2.0", features = ["shell-open"] }
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"] }
+
+[dev-dependencies]
+tauri-build = "2.0"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "z"
+strip = true
