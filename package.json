@@ -12,12 +12,6 @@
     "lint": "pnpm -r run lint",
     "format": "pnpm -r run format"
   },
-  "workspaces": [
-    "desktop",
-    "mobile",
-    "semantic-engine",
-    "python-controller"
-  ],
   "author": "Lumen Helix Solutions",
   "license": "MIT",
   "repository": {
