@@ -12,9 +12,9 @@ export default function TopNav({ onSettingsClick }: TopNavProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          Connected
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-slate-500" />
+          No Device
         </span>
       </div>
 

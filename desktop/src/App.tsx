@@ -5,7 +5,6 @@ import RokuDeviceCard from './components/RokuDeviceCard'
 import DevicesView from './components/DevicesView'
 import AppsView from './components/AppsView'
 import SettingsView from './components/SettingsView'
-import ActivityLog from './components/ActivityLog'
 import './App.css'
 
 type NavSection = 'dashboard' | 'devices' | 'apps' | 'settings'
@@ -75,8 +74,8 @@ function App() {
               {/* Stats Row */}
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { label: 'Devices Online', value: '1', icon: '📺', color: 'text-emerald-400' },
-                  { label: 'Apps Installed', value: '3', icon: '🎬', color: 'text-sky-400' },
+                  { label: 'Devices Online', value: '0', icon: '📺', color: 'text-emerald-400' },
+                  { label: 'Apps Installed', value: '0', icon: '🎬', color: 'text-sky-400' },
                   { label: 'Alerts', value: '0', icon: '🔔', color: 'text-amber-400' },
                 ].map((stat) => (
                   <div key={stat.label} className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex items-center gap-4">
@@ -99,7 +98,6 @@ function App() {
                   {[
                     { label: 'Refresh Devices', icon: '🔄', handler: handleRefreshDevices, primary: true },
                     { label: 'Scan Network', icon: '🔍', handler: handleScanNetwork, primary: false },
-                    { label: 'Manage Apps', icon: '🎬', handler: () => setActiveSection('apps'), primary: false },
                     { label: 'Open Settings', icon: '⚙️', handler: handleOpenSettings, primary: false },
                   ].map((action) => (
                     <button
@@ -118,8 +116,6 @@ function App() {
                 </div>
               </div>
 
-              {/* Activity Log */}
-              <ActivityLog />
             </>
           )}
 
