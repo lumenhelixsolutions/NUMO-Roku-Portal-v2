@@ -187,31 +187,39 @@ function App() {
     setScanTotal(subnets.length * 254)
 
     let totalScanned = 0
-    const newIps: string[] = []
+    // Use a Set to deduplicate IPs discovered in this scan run.  A single IP
+    // can appear in multiple subnets scanned sequentially, and the closure over
+    // `devices` only reflects the snapshot at scan-start, so we must also track
+    // what we've found this run to avoid redundant addDeviceIp calls.
+    const discoveredIps = new Set<string>()
 
-    for (const subnet of subnets) {
-      await scanSubnet(
-        subnet,
-        (ip) => {
-          newIps.push(ip)
-          // Skip IPs that are already tracked to avoid redundant fetches.
-          // probeDevice already confirmed this is a real Roku device; addDeviceIp
-          // may still fail if the device disappears between probe and fetch.
-          if (!devices.find((d) => d.ip === ip)) {
-            addDeviceIp(ip).catch(() => {})
-          }
-        },
-        (scanned) => {
-          totalScanned = scanned
-          setScanProgress(totalScanned)
-        },
-      )
+    try {
+      for (const subnet of subnets) {
+        await scanSubnet(
+          subnet,
+          (ip) => {
+            if (discoveredIps.has(ip)) { return } // already seen in this scan run
+            discoveredIps.add(ip)
+            // probeDevice already confirmed this is a real Roku device; addDeviceIp
+            // may still fail if the device disappears between probe and fetch.
+            if (!devices.find((d) => d.ip === ip)) {
+              addDeviceIp(ip).catch(() => {})
+            }
+          },
+          (scanned) => {
+            totalScanned = scanned
+            setScanProgress(totalScanned)
+          },
+        )
+      }
+
+      const msg = discoveredIps.size > 0 ? `Found ${discoveredIps.size} Roku device(s)` : 'No Roku devices found'
+      showStatus(msg)
+      logActivity(`Scan complete: ${msg}`)
+    } finally {
+      // Always clear the scanning flag so the UI is never permanently locked.
+      setScanning(false)
     }
-
-    setScanning(false)
-    const msg = newIps.length > 0 ? `Found ${newIps.length} Roku device(s)` : 'No Roku devices found'
-    showStatus(msg)
-    logActivity(`Scan complete: ${msg}`)
   }, [scanning, devices, addDeviceIp, logActivity])
 
   // Keep ref pointing at the latest scanNetwork for the startup auto-scan
