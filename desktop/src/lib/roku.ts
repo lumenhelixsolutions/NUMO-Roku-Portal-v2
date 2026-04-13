@@ -94,13 +94,22 @@ export async function launchApp(ip: string, appId: string): Promise<void> {
   await fetch(ecpUrl(ip, `/launch/${appId}`), { method: 'POST', signal: AbortSignal.timeout(5000) })
 }
 
-/** Returns true if a Roku device responds at the given IP. */
+/** Returns true if a real Roku device responds at the given IP.
+ *  Validates the ECP /query/device-info XML response to confirm it is a Roku
+ *  device (not just any host that happens to return HTTP 200 on port 8060).
+ */
 export async function probeDevice(ip: string, timeoutMs = 1500): Promise<boolean> {
   try {
     const res = await fetch(ecpUrl(ip, '/query/device-info'), {
       signal: AbortSignal.timeout(timeoutMs),
     })
-    return res.ok
+    if (!res.ok) return false
+    const text = await res.text()
+    const doc = parseXml(text)
+    // A genuine Roku ECP response always has a non-empty <serial-number>.
+    // Non-Roku devices may return HTTP 200 but will not have this field.
+    const serialNumber = getText(doc, 'serial-number')
+    return serialNumber.length > 0
   } catch {
     return false
   }
