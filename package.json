@@ -7,7 +7,6 @@
   "scripts": {
     "dev:desktop": "cd desktop && npm run tauri dev",
     "build:desktop": "cd desktop && npm run tauri build",
-    "build:android": "cd mobile && ./gradlew build",
     "test": "pnpm -r run test",
     "lint": "pnpm -r run lint",
     "format": "pnpm -r run format"

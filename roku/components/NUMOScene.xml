@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  NUMOScene — Main SceneGraph scene for the NUMO Roku Thin Client.
+
+  Responsibilities
+  ────────────────
+  • Display connection status, PAS score, and stream telemetry.
+  • Render semi-transparent overlay rectangles at each interactive element's
+    bounding-box position (scaled from the 1920×1080 server viewport).
+  • Highlight the currently focused element in response to D-pad navigation.
+  • Map Roku D-pad key events to NUMO D₈ navigation messages and forward them
+    to StreamTask, which sends the JSON payload to the BYOS server.
+  • Display AI / Agent Zero responses in a footer label.
+-->
+<component name="NUMOScene" extends="Scene">
+  <script type="text/brightscript" uri="pkg:/components/NUMOScene.brs" />
+  <children>
+
+    <!-- Status banner (top-left) -->
+    <Label
+      id="statusLabel"
+      text="NUMO — Connecting…"
+      translation="[50, 30]"
+      color="0xFFFFFFFF"
+      font="font:MediumBoldSystemFont" />
+
+    <!-- PAS + LOD indicator -->
+    <Label
+      id="pasLabel"
+      text=""
+      translation="[50, 80]"
+      color="0x44BBFFFF"
+      font="font:SmallSystemFont" />
+
+    <!-- Stream telemetry (seq, element count, resonance time) -->
+    <Label
+      id="telemetryLabel"
+      text=""
+      translation="[50, 110]"
+      color="0x888888FF"
+      font="font:SmallSystemFont" />
+
+    <!-- Element overlay group — semi-transparent rectangles per DOM element -->
+    <Group id="overlayGroup" translation="[0, 0]" />
+
+    <!-- AI / Agent Zero response footer -->
+    <Label
+      id="aiLabel"
+      text=""
+      translation="[50, 980]"
+      color="0xAAFF44FF"
+      font="font:SmallSystemFont"
+      width="1820" />
+
+  </children>
+</component>
