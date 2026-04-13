@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import type { RokuDeviceInfo } from '../lib/roku'
+
 interface SettingsState {
   networkDiscovery: boolean
   darkMode: boolean
@@ -11,6 +14,9 @@ interface SettingsViewProps {
   settings: SettingsState
   onToggle: (key: keyof SettingsState) => void
   onStatusMessage: (msg: string) => void
+  devices: RokuDeviceInfo[]
+  onAddDevice: (ip: string) => Promise<void>
+  onRemoveDevice: (ip: string) => void
 }
 
 function ToggleRow({
@@ -44,7 +50,34 @@ function ToggleRow({
   )
 }
 
-export default function SettingsView({ settings, onToggle, onStatusMessage }: SettingsViewProps) {
+export default function SettingsView({
+  settings,
+  onToggle,
+  onStatusMessage,
+  devices,
+  onAddDevice,
+  onRemoveDevice,
+}: SettingsViewProps) {
+  const [manualIp, setManualIp] = useState('')
+  const [addError, setAddError] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
+
+  async function handleAddDevice() {
+    const ip = manualIp.trim()
+    if (!ip) return
+    setAdding(true)
+    setAddError(null)
+    try {
+      await onAddDevice(ip)
+      setManualIp('')
+      onStatusMessage(`Device at ${ip} added.`)
+    } catch {
+      setAddError(`Could not reach a Roku device at ${ip}. Verify the IP and that port 8060 is reachable.`)
+    } finally {
+      setAdding(false)
+    }
+  }
+
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
@@ -70,6 +103,8 @@ export default function SettingsView({ settings, onToggle, onStatusMessage }: Se
             checked={settings.lowBandwidth}
             onToggle={() => onToggle('lowBandwidth')}
           />
+
+          {/* Manual IP entry */}
           <div className="py-3.5">
             <div className="flex items-center justify-between mb-2">
               <div>
@@ -80,17 +115,48 @@ export default function SettingsView({ settings, onToggle, onStatusMessage }: Se
             <div className="flex gap-2">
               <input
                 type="text"
+                value={manualIp}
+                onChange={(e) => { setManualIp(e.target.value); setAddError(null) }}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAddDevice() }}
                 placeholder="e.g. 192.168.1.105"
                 className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
               />
               <button
-                onClick={() => onStatusMessage('Device added manually.')}
-                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
+                onClick={handleAddDevice}
+                disabled={adding || !manualIp.trim()}
+                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
               >
-                Add
+                {adding ? '…' : 'Add'}
               </button>
             </div>
+            {addError && (
+              <p className="text-xs text-red-400 mt-2">⚠️ {addError}</p>
+            )}
           </div>
+
+          {/* Saved device list */}
+          {devices.length > 0 && (
+            <div className="py-3.5 space-y-2">
+              <p className="text-sm font-medium text-white mb-2">Saved Devices</p>
+              {devices.map((d) => (
+                <div
+                  key={d.ip}
+                  className="flex items-center justify-between bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm text-slate-200 truncate">{d.friendlyName}</p>
+                    <p className="text-xs text-slate-500">{d.ip} · {d.modelName}</p>
+                  </div>
+                  <button
+                    onClick={() => { onRemoveDevice(d.ip); onStatusMessage(`Removed ${d.friendlyName}`) }}
+                    className="ml-3 text-xs text-red-400 hover:text-red-300 shrink-0 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

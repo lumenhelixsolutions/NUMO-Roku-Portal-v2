@@ -1,0 +1,131 @@
+// Roku External Control Protocol (ECP) service
+// Requests are routed through the Vite dev-server CORS proxy at /roku-proxy/<ip>/<path>
+// In a Tauri production build the requests can be made directly since there is no browser CORS restriction.
+
+export interface RokuDeviceInfo {
+  ip: string
+  friendlyName: string
+  modelName: string
+  modelNumber: string
+  serialNumber: string
+  softwareVersion: string
+  udn: string
+}
+
+export interface RokuApp {
+  id: string
+  name: string
+  version: string
+  type: string
+}
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+function ecpUrl(ip: string, ecpPath: string): string {
+  // In the browser we must go through the proxy to avoid CORS.
+  // Detect whether we're in a Tauri WebView (window.__TAURI__ is defined).
+  const isTauri = typeof window !== 'undefined' && !!(window as { __TAURI__?: unknown }).__TAURI__
+  if (isTauri) {
+    return `http://${ip}:8060${ecpPath}`
+  }
+  return `/roku-proxy/${ip}${ecpPath}`
+}
+
+function getText(doc: Document, tag: string): string {
+  return doc.querySelector(tag)?.textContent?.trim() ?? ''
+}
+
+function parseXml(text: string): Document {
+  return new DOMParser().parseFromString(text, 'application/xml')
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+export async function fetchDeviceInfo(ip: string): Promise<RokuDeviceInfo> {
+  const res = await fetch(ecpUrl(ip, '/query/device-info'), { signal: AbortSignal.timeout(5000) })
+  if (!res.ok) throw new Error(`ECP ${res.status}`)
+  const doc = parseXml(await res.text())
+  return {
+    ip,
+    friendlyName: getText(doc, 'friendly-device-name') || getText(doc, 'user-device-name') || ip,
+    modelName: getText(doc, 'model-name'),
+    modelNumber: getText(doc, 'model-number'),
+    serialNumber: getText(doc, 'serial-number'),
+    softwareVersion: getText(doc, 'software-version'),
+    udn: getText(doc, 'udn'),
+  }
+}
+
+export async function fetchApps(ip: string): Promise<RokuApp[]> {
+  const res = await fetch(ecpUrl(ip, '/query/apps'), { signal: AbortSignal.timeout(5000) })
+  if (!res.ok) throw new Error(`ECP ${res.status}`)
+  const doc = parseXml(await res.text())
+  return Array.from(doc.querySelectorAll('app')).map((el) => ({
+    id: el.getAttribute('id') ?? '',
+    name: el.textContent?.trim() ?? '',
+    version: el.getAttribute('version') ?? '',
+    type: el.getAttribute('type') ?? '',
+  }))
+}
+
+export async function fetchActiveApp(ip: string): Promise<RokuApp | null> {
+  const res = await fetch(ecpUrl(ip, '/query/active-app'), { signal: AbortSignal.timeout(5000) })
+  if (!res.ok) return null
+  const doc = parseXml(await res.text())
+  const el = doc.querySelector('active-app > app')
+  if (!el) return null
+  return {
+    id: el.getAttribute('id') ?? '',
+    name: el.textContent?.trim() ?? '',
+    version: el.getAttribute('version') ?? '',
+    type: el.getAttribute('type') ?? '',
+  }
+}
+
+export async function sendKey(ip: string, key: string): Promise<void> {
+  await fetch(ecpUrl(ip, `/keypress/${key}`), { method: 'POST', signal: AbortSignal.timeout(5000) })
+}
+
+export async function launchApp(ip: string, appId: string): Promise<void> {
+  await fetch(ecpUrl(ip, `/launch/${appId}`), { method: 'POST', signal: AbortSignal.timeout(5000) })
+}
+
+/** Returns true if a Roku device responds at the given IP. */
+export async function probeDevice(ip: string): Promise<boolean> {
+  try {
+    const res = await fetch(ecpUrl(ip, '/query/device-info'), {
+      signal: AbortSignal.timeout(1500),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+/** Scan all 254 hosts in a /24 subnet in parallel batches. */
+export async function scanSubnet(
+  subnet: string, // e.g. "192.168.1"
+  onFound: (ip: string) => void,
+  onProgress: (scanned: number, total: number) => void,
+): Promise<void> {
+  const total = 254
+  let scanned = 0
+  const BATCH = 25
+
+  for (let start = 1; start <= total; start += BATCH) {
+    const end = Math.min(start + BATCH - 1, total)
+    const batch = Array.from({ length: end - start + 1 }, (_, i) => `${subnet}.${start + i}`)
+    await Promise.all(
+      batch.map(async (ip) => {
+        const found = await probeDevice(ip)
+        scanned++
+        onProgress(scanned, total)
+        if (found) onFound(ip)
+      }),
+    )
+  }
+}
