@@ -5,10 +5,9 @@ interface RokuDeviceCardProps {
   device: RokuDeviceInfo | null
   onRefresh: () => void
   onScan: () => void
-  onAppCountChange?: (count: number) => void
 }
 
-export default function RokuDeviceCard({ device, onRefresh, onScan, onAppCountChange }: RokuDeviceCardProps) {
+export default function RokuDeviceCard({ device, onRefresh, onScan }: RokuDeviceCardProps) {
   const [activeApp, setActiveApp] = useState<RokuApp | null>(null)
 
   useEffect(() => {
@@ -27,11 +26,6 @@ export default function RokuDeviceCard({ device, onRefresh, onScan, onAppCountCh
     const id = setInterval(poll, 30_000)
     return () => { cancelled = true; clearInterval(id) }
   }, [device])
-
-  // Notify parent of app count (0 or 1 for dashboard stat)
-  useEffect(() => {
-    onAppCountChange?.(activeApp ? 1 : 0)
-  }, [activeApp, onAppCountChange])
 
   return (
     <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-4">

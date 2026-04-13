@@ -106,6 +106,11 @@ export async function probeDevice(ip: string): Promise<boolean> {
   }
 }
 
+/** Returns the URL for the channel icon image (use as an <img> src). */
+export function iconUrl(ip: string, appId: string): string {
+  return ecpUrl(ip, `/query/icon/${appId}`)
+}
+
 /** Scan all 254 hosts in a /24 subnet in parallel batches. */
 export async function scanSubnet(
   subnet: string, // e.g. "192.168.1"

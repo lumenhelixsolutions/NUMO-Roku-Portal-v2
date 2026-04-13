@@ -11,6 +11,7 @@ interface DevicesViewProps {
   onScan: () => void
   onRefresh: () => void
   onStatusMessage: (msg: string) => void
+  onlineIps?: Set<string>
 }
 
 const KEY_BUTTONS: { label: string; key: string; icon: string }[] = [
@@ -21,7 +22,7 @@ const KEY_BUTTONS: { label: string; key: string; icon: string }[] = [
   { label: 'Power Off', key: 'PowerOff', icon: '⏻' },
 ]
 
-function DeviceDetail({ device, onStatusMessage }: { device: RokuDeviceInfo; onStatusMessage: (m: string) => void }) {
+function DeviceDetail({ device, onStatusMessage, isOnline = true }: { device: RokuDeviceInfo; onStatusMessage: (m: string) => void; isOnline?: boolean }) {
   const [activeApp, setActiveApp] = useState<RokuApp | null>(null)
   const [sendingKey, setSendingKey] = useState<string | null>(null)
 
@@ -50,9 +51,13 @@ function DeviceDetail({ device, onStatusMessage }: { device: RokuDeviceInfo; onS
           <p className="font-semibold text-white">{device.friendlyName}</p>
           <p className="text-xs text-slate-400 mt-0.5">{device.ip}</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-900/40 border border-emerald-700/50 text-emerald-400 text-xs font-medium">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          Online
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium ${
+          isOnline
+            ? 'bg-emerald-900/40 border-emerald-700/50 text-emerald-400'
+            : 'bg-red-900/40 border-red-700/50 text-red-400'
+        }`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-red-400'}`} />
+          {isOnline ? 'Online' : 'Offline'}
         </span>
       </div>
 
@@ -102,6 +107,7 @@ export default function DevicesView({
   onScan,
   onRefresh,
   onStatusMessage,
+  onlineIps,
 }: DevicesViewProps) {
   const selectedDevice = devices.find((d) => d.ip === selectedIp) ?? null
 
