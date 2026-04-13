@@ -193,7 +193,11 @@ export default function DevicesView({
 
           {/* Selected device detail */}
           {selectedDevice && (
-            <DeviceDetail device={selectedDevice} onStatusMessage={onStatusMessage} />
+            <DeviceDetail
+              device={selectedDevice}
+              onStatusMessage={onStatusMessage}
+              isOnline={onlineIps ? onlineIps.has(selectedDevice.ip) : true}
+            />
           )}
         </div>
       )}

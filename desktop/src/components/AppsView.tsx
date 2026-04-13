@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchApps, launchApp, type RokuDeviceInfo, type RokuApp } from '../lib/roku'
+import { fetchApps, launchApp, iconUrl, type RokuDeviceInfo, type RokuApp } from '../lib/roku'
 
 interface AppsViewProps {
   devices: RokuDeviceInfo[]
@@ -13,13 +13,15 @@ export default function AppsView({ devices, selectedIp, onSelectDevice, onStatus
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [launching, setLaunching] = useState<string | null>(null)
+  const [iconErrors, setIconErrors] = useState<Set<string>>(new Set())
 
   const activeIp = selectedIp ?? devices[0]?.ip ?? null
 
   useEffect(() => {
-    if (!activeIp) { setApps([]); return }
+    if (!activeIp) { setApps([]); setIconErrors(new Set()); return }
     setLoading(true)
     setError(null)
+    setIconErrors(new Set())
     fetchApps(activeIp)
       .then((list) => setApps(list))
       .catch(() => setError('Could not load apps. Ensure the device is reachable on port 8060.'))
@@ -91,6 +93,16 @@ export default function AppsView({ devices, selectedIp, onSelectDevice, onStatus
               className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col justify-between gap-3"
             >
               <div>
+                <div className="w-full h-16 mb-2 flex items-center justify-center rounded-lg bg-slate-900 overflow-hidden">
+                  {!iconErrors.has(app.id) && (
+                    <img
+                      src={iconUrl(activeIp!, app.id)}
+                      alt={app.name}
+                      onError={() => setIconErrors((prev) => new Set([...prev, app.id]))}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  )}
+                </div>
                 <p className="font-semibold text-white text-sm">{app.name}</p>
                 <p className="text-xs text-slate-500 mt-0.5">
                   v{app.version}{app.type ? ` · ${app.type}` : ''}

@@ -1,16 +1,19 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import TopNav from './components/TopNav'
 import Sidebar from './components/Sidebar'
 import RokuDeviceCard from './components/RokuDeviceCard'
 import DevicesView from './components/DevicesView'
 import AppsView from './components/AppsView'
 import SettingsView from './components/SettingsView'
-import { fetchDeviceInfo, scanSubnet, type RokuDeviceInfo } from './lib/roku'
+import ActivityLog, { type ActivityEntry } from './components/ActivityLog'
+import { fetchDeviceInfo, fetchApps, scanSubnet, type RokuDeviceInfo } from './lib/roku'
 import './App.css'
 
 type NavSection = 'dashboard' | 'devices' | 'apps' | 'settings'
 
 const LS_KEY = 'numo_known_ips'
+const LS_SETTINGS_KEY = 'numo_settings'
+const LS_SELECTED_IP_KEY = 'numo_selected_ip'
 
 const DEFAULT_SETTINGS = {
   networkDiscovery: true,
@@ -33,32 +36,95 @@ function saveKnownIps(ips: string[]) {
   localStorage.setItem(LS_KEY, JSON.stringify(ips))
 }
 
+function loadSettings(): typeof DEFAULT_SETTINGS {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LS_SETTINGS_KEY) ?? 'null')
+    return saved ? { ...DEFAULT_SETTINGS, ...saved } : DEFAULT_SETTINGS
+  } catch {
+    return DEFAULT_SETTINGS
+  }
+}
+
+function saveSettings(s: typeof DEFAULT_SETTINGS) {
+  localStorage.setItem(LS_SETTINGS_KEY, JSON.stringify(s))
+}
+
+function loadSelectedIp(): string | null {
+  return localStorage.getItem(LS_SELECTED_IP_KEY)
+}
+
+function selectInitialDevice(savedIp: string | null, resolved: RokuDeviceInfo[]): string | null {
+  if (savedIp && resolved.find((d) => d.ip === savedIp)) return savedIp
+  return resolved.length > 0 ? resolved[0].ip : null
+}
+
+function saveSelectedIp(ip: string | null) {
+  if (ip) localStorage.setItem(LS_SELECTED_IP_KEY, ip)
+  else localStorage.removeItem(LS_SELECTED_IP_KEY)
+}
+
 function App() {
   const [activeSection, setActiveSection] = useState<NavSection>('dashboard')
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+  const [settings, setSettings] = useState(loadSettings)
 
   // ── Real device state ──────────────────────────────────────────────────────
   const [devices, setDevices] = useState<RokuDeviceInfo[]>([])
   const [selectedIp, setSelectedIp] = useState<string | null>(null)
+  const [onlineIps, setOnlineIps] = useState<Set<string>>(new Set())
   const [scanning, setScanning] = useState(false)
   const [scanProgress, setScanProgress] = useState(0)
   const [scanTotal, setScanTotal] = useState(254)
-  const [dashboardAppCount, setDashboardAppCount] = useState(0)
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null)
+  const [selectedDeviceAppCount, setSelectedDeviceAppCount] = useState<number | null>(null)
 
-  // Load saved IPs on mount and resolve device info
+  // ── Activity log ──────────────────────────────────────────────────────────
+  const [activityLog, setActivityLog] = useState<ActivityEntry[]>([])
+  const nextLogId = useRef(0)
 
+  const logActivity = useCallback((msg: string) => {
+    const entry: ActivityEntry = { id: nextLogId.current++, timestamp: new Date(), message: msg }
+    setActivityLog((prev) => [entry, ...prev].slice(0, 100))
+  }, [])
+
+  // Ref so the startup effect can call the latest scanNetwork without being in its dep array
+  const scanNetworkRef = useRef<() => Promise<void>>(async () => {})
+
+  // ── Persistence effects ────────────────────────────────────────────────────
+  useEffect(() => { saveSettings(settings) }, [settings])
+  useEffect(() => { saveSelectedIp(selectedIp) }, [selectedIp])
+
+  // ── Fetch app count for selected device ───────────────────────────────────
+  useEffect(() => {
+    if (!selectedIp) { setSelectedDeviceAppCount(null); return }
+    setSelectedDeviceAppCount(null)
+    fetchApps(selectedIp)
+      .then((list) => setSelectedDeviceAppCount(list.length))
+      .catch(() => setSelectedDeviceAppCount(null))
+  }, [selectedIp])
+
+  // ── Load saved IPs on mount, restore selected device, optionally auto-scan ─
   useEffect(() => {
     const ips = loadKnownIps()
-    if (ips.length === 0) return
-    Promise.allSettled(ips.map((ip) => fetchDeviceInfo(ip))).then((results) => {
-      const resolved = results
-        .filter((r): r is PromiseFulfilledResult<RokuDeviceInfo> => r.status === 'fulfilled')
-        .map((r) => r.value)
-      setDevices(resolved)
-      // Auto-select the first device only on initial load, not on subsequent refreshes
-      setSelectedIp((prev) => (prev === null && resolved.length > 0 ? resolved[0].ip : prev))
-    })
+    const savedIp = loadSelectedIp()
+    const autoScan = loadSettings().networkDiscovery
+
+    async function init() {
+      if (ips.length > 0) {
+        const results = await Promise.allSettled(ips.map((ip) => fetchDeviceInfo(ip)))
+        const resolved = results
+          .filter((r): r is PromiseFulfilledResult<RokuDeviceInfo> => r.status === 'fulfilled')
+          .map((r) => r.value)
+        setDevices(resolved)
+        setOnlineIps(new Set(resolved.map((d) => d.ip)))
+        const restoredIp = selectInitialDevice(savedIp, resolved)
+        setSelectedIp(restoredIp)
+        if (resolved.length > 0) setLastRefreshTime(new Date())
+      }
+      if (autoScan) scanNetworkRef.current()
+    }
+
+    init()
   }, []) // intentionally empty — runs once on mount
 
   function showStatus(msg: string) {
@@ -76,9 +142,11 @@ function App() {
       saveKnownIps(next.map((d) => d.ip))
       return next
     })
+    setOnlineIps((prev) => new Set([...prev, ip]))
     setSelectedIp((prev) => prev ?? ip)
     showStatus(`Added ${info.friendlyName}`)
-  }, [])
+    logActivity(`Added device: ${info.friendlyName} (${ip})`)
+  }, [logActivity])
 
   const removeDeviceIp = useCallback((ip: string) => {
     setDevices((prev) => {
@@ -86,8 +154,10 @@ function App() {
       saveKnownIps(next.map((d) => d.ip))
       return next
     })
+    setOnlineIps((prev) => { const next = new Set(prev); next.delete(ip); return next })
     setSelectedIp((prev) => (prev === ip ? null : prev))
-  }, [])
+    logActivity(`Removed device: ${ip}`)
+  }, [logActivity])
 
   const refreshDevices = useCallback(async () => {
     showStatus('Refreshing device list…')
@@ -98,13 +168,18 @@ function App() {
       .filter((r): r is PromiseFulfilledResult<RokuDeviceInfo> => r.status === 'fulfilled')
       .map((r) => r.value)
     setDevices(resolved)
-    showStatus(`${resolved.length} device${resolved.length !== 1 ? 's' : ''} online`)
-  }, [devices])
+    setOnlineIps(new Set(resolved.map((d) => d.ip)))
+    setLastRefreshTime(new Date())
+    const msg = `${resolved.length} device${resolved.length !== 1 ? 's' : ''} online`
+    showStatus(msg)
+    logActivity(`Refreshed: ${msg}`)
+  }, [devices, logActivity])
 
   const scanNetwork = useCallback(async () => {
     if (scanning) return
     setScanning(true)
     setScanProgress(0)
+    logActivity('Network scan started')
 
     // Infer subnet from existing devices, otherwise try common subnets
     const existingSubnets = [...new Set(devices.map((d) => d.ip.split('.').slice(0, 3).join('.')))]
@@ -131,8 +206,13 @@ function App() {
     }
 
     setScanning(false)
-    showStatus(newIps.length > 0 ? `Found ${newIps.length} Roku device(s)` : 'No Roku devices found')
-  }, [scanning, devices, addDeviceIp])
+    const msg = newIps.length > 0 ? `Found ${newIps.length} Roku device(s)` : 'No Roku devices found'
+    showStatus(msg)
+    logActivity(`Scan complete: ${msg}`)
+  }, [scanning, devices, addDeviceIp, logActivity])
+
+  // Keep ref pointing at the latest scanNetwork for the startup auto-scan
+  useEffect(() => { scanNetworkRef.current = scanNetwork }, [scanNetwork])
 
   function handleOpenSettings() {
     setActiveSection('settings')
@@ -143,6 +223,10 @@ function App() {
   }
 
   const selectedDevice = devices.find((d) => d.ip === selectedIp) ?? null
+
+  const lastRefreshedLabel = lastRefreshTime
+    ? lastRefreshTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : 'Never'
 
   return (
     <div className="flex flex-col h-screen bg-slate-950 text-slate-100">
@@ -175,8 +259,8 @@ function App() {
               <div className="grid grid-cols-3 gap-4">
                 {[
                   { label: 'Devices Online', value: String(devices.length), icon: '📺', color: 'text-emerald-400' },
-                  { label: 'Apps Installed', value: String(dashboardAppCount), icon: '🎬', color: 'text-sky-400' },
-                  { label: 'Alerts', value: '0', icon: '🔔', color: 'text-amber-400' },
+                  { label: 'Apps Installed', value: selectedDeviceAppCount !== null ? String(selectedDeviceAppCount) : '—', icon: '🎬', color: 'text-sky-400' },
+                  { label: 'Last Refreshed', value: lastRefreshedLabel, icon: '🕒', color: 'text-amber-400' },
                 ].map((stat) => (
                   <div key={stat.label} className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex items-center gap-4">
                     <span className="text-3xl">{stat.icon}</span>
@@ -194,7 +278,6 @@ function App() {
                   device={selectedDevice}
                   onRefresh={refreshDevices}
                   onScan={scanNetwork}
-                  onAppCountChange={setDashboardAppCount}
                 />
 
                 {/* Quick Actions */}
@@ -220,6 +303,9 @@ function App() {
                   ))}
                 </div>
               </div>
+
+              {/* Activity Log */}
+              <ActivityLog entries={activityLog} />
             </>
           )}
 
@@ -234,6 +320,7 @@ function App() {
               onScan={scanNetwork}
               onRefresh={refreshDevices}
               onStatusMessage={showStatus}
+              onlineIps={onlineIps}
             />
           )}
 
