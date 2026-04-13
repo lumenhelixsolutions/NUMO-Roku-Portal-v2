@@ -41,6 +41,20 @@ function parseXml(text: string): Document {
   return new DOMParser().parseFromString(text, 'application/xml')
 }
 
+/**
+ * Returns true only if the parsed document is a well-formed Roku ECP
+ * device-info response. Rejects malformed XML, non-Roku responses, and any
+ * response that lacks a serial number (the one field every real Roku has).
+ */
+function isValidEcpDeviceInfo(doc: Document): boolean {
+  // DOMParser sets the root element to <parsererror> for malformed XML.
+  if (doc.documentElement.nodeName === 'parsererror') return false
+  // Roku ECP /query/device-info always returns <device-info> as the root.
+  if (doc.documentElement.nodeName !== 'device-info') return false
+  // Every genuine Roku device has a non-empty serial number.
+  return getText(doc, 'serial-number').length > 0
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -48,7 +62,9 @@ function parseXml(text: string): Document {
 export async function fetchDeviceInfo(ip: string): Promise<RokuDeviceInfo> {
   const res = await fetch(ecpUrl(ip, '/query/device-info'), { signal: AbortSignal.timeout(5000) })
   if (!res.ok) throw new Error(`ECP ${res.status}`)
-  const doc = parseXml(await res.text())
+  const text = await res.text()
+  const doc = parseXml(text)
+  if (!isValidEcpDeviceInfo(doc)) throw new Error('Not a valid Roku ECP device-info response')
   return {
     ip,
     friendlyName: getText(doc, 'friendly-device-name') || getText(doc, 'user-device-name') || ip,

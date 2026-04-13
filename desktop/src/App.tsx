@@ -89,6 +89,9 @@ function App() {
 
   // Ref so the startup effect can call the latest scanNetwork without being in its dep array
   const scanNetworkRef = useRef<() => Promise<void>>(async () => {})
+  // Tracks IPs already being processed in the current scan to prevent duplicates
+  // across overlapping subnet scans (stale-closure-safe alternative to devices.find()).
+  const scanFoundIpsRef = useRef<Set<string>>(new Set())
 
   // ── Persistence effects ────────────────────────────────────────────────────
   useEffect(() => { saveSettings(settings) }, [settings])
@@ -117,6 +120,10 @@ function App() {
           .map((r) => r.value)
         setDevices(resolved)
         setOnlineIps(new Set(resolved.map((d) => d.ip)))
+        // Persist only the IPs that were reachable and returned valid Roku ECP
+        // responses at startup, pruning any stale/invalid entries that may have
+        // accumulated in localStorage from previous sessions.
+        saveKnownIps(resolved.map((d) => d.ip))
         const restoredIp = selectInitialDevice(savedIp, resolved)
         setSelectedIp(restoredIp)
         if (resolved.length > 0) setLastRefreshTime(new Date())
@@ -135,9 +142,21 @@ function App() {
   // ── Device management ──────────────────────────────────────────────────────
 
   const addDeviceIp = useCallback(async (ip: string): Promise<void> => {
-    const info = await fetchDeviceInfo(ip) // throws if unreachable
+    const info = await fetchDeviceInfo(ip) // throws if unreachable or not a valid Roku
     setDevices((prev) => {
+      // Deduplicate by IP (exact match).
       if (prev.find((d) => d.ip === ip)) return prev
+      // Deduplicate by UDN: if the same physical device was previously seen at a
+      // different IP (e.g. after a DHCP re-assignment), replace the stale entry.
+      if (info.udn) {
+        const staleIdx = prev.findIndex((d) => d.udn && d.udn === info.udn)
+        if (staleIdx !== -1) {
+          const next = [...prev]
+          next[staleIdx] = info
+          saveKnownIps(next.map((d) => d.ip))
+          return next
+        }
+      }
       const next = [...prev, info]
       saveKnownIps(next.map((d) => d.ip))
       return next
@@ -179,6 +198,13 @@ function App() {
     if (scanning) return
     setScanning(true)
     setScanProgress(0)
+
+    // Reset transient scan state so stale results from prior scans don't persist.
+    // onlineIps is cleared here and populated incrementally as each Roku device
+    // is confirmed (via addDeviceIp), so the final count exactly reflects this scan.
+    setOnlineIps(new Set())
+    scanFoundIpsRef.current = new Set()
+
     logActivity('Network scan started')
 
     // Infer subnet from existing devices, otherwise try common subnets
@@ -193,13 +219,13 @@ function App() {
       await scanSubnet(
         subnet,
         (ip) => {
+          // Use the ref-backed set for dedup — safe against stale closure captures.
+          if (scanFoundIpsRef.current.has(ip)) return
+          scanFoundIpsRef.current.add(ip)
           newIps.push(ip)
-          // Skip IPs that are already tracked to avoid redundant fetches.
-          // probeDevice already confirmed this is a real Roku device; addDeviceIp
-          // may still fail if the device disappears between probe and fetch.
-          if (!devices.find((d) => d.ip === ip)) {
-            addDeviceIp(ip).catch(() => {})
-          }
+          // addDeviceIp fetches full device info and guards against duplicates
+          // via a functional setDevices update — no stale-closure issue there.
+          addDeviceIp(ip).catch(() => {})
         },
         (scanned) => {
           totalScanned = scanned
@@ -261,7 +287,7 @@ function App() {
               {/* Stats Row */}
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { label: 'Devices Online', value: String(devices.length), icon: '📺', color: 'text-emerald-400' },
+                  { label: 'Devices Online', value: String(onlineIps.size), icon: '📺', color: 'text-emerald-400' },
                   { label: 'Apps Installed', value: selectedDeviceAppCount !== null ? String(selectedDeviceAppCount) : '—', icon: '🎬', color: 'text-sky-400' },
                   { label: 'Last Refreshed', value: lastRefreshedLabel, icon: '🕒', color: 'text-amber-400' },
                 ].map((stat) => (
