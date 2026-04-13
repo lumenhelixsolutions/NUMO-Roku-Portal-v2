@@ -38,7 +38,14 @@ function getText(doc: Document, tag: string): string {
 }
 
 function parseXml(text: string): Document {
-  return new DOMParser().parseFromString(text, 'application/xml')
+  const doc = new DOMParser().parseFromString(text, 'application/xml')
+  // DOMParser signals parse failures via a <parsererror> element rather than
+  // throwing.  Detect and convert to a real error so callers can reject
+  // malformed / non-Roku ECP responses early.
+  if (doc.querySelector('parsererror')) {
+    throw new Error('ECP XML parse error')
+  }
+  return doc
 }
 
 /**
