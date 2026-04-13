@@ -11,12 +11,12 @@ default-run = "numo-portal"
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "2.0", features = ["shell-open"] }
-tokio = { version = "1", features = ["full"] }
-reqwest = { version = "0.11", features = ["json"] }
+tauri = { version = "2.0" }
 
 [dev-dependencies]
-tauri-build = "2.0"
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }
 
 [profile.release]
 codegen-units = 1
