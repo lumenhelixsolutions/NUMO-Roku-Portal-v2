@@ -194,9 +194,12 @@ function App() {
         subnet,
         (ip) => {
           newIps.push(ip)
-          // probeDevice already confirmed port 8060 is open; addDeviceIp may still fail
-          // if the device info endpoint returns unexpected data — silently skip those.
-          addDeviceIp(ip).catch(() => {})
+          // Skip IPs that are already tracked to avoid redundant fetches.
+          // probeDevice already confirmed this is a real Roku device; addDeviceIp
+          // may still fail if the device disappears between probe and fetch.
+          if (!devices.find((d) => d.ip === ip)) {
+            addDeviceIp(ip).catch(() => {})
+          }
         },
         (scanned) => {
           totalScanned = scanned
