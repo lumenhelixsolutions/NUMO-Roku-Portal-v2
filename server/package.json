@@ -1,0 +1,24 @@
+{
+  "name": "numo-byos-server",
+  "version": "1.0.0",
+  "description": "NUMO BYOS Semantic Streaming Server — CDP, 32.C.U.B.I.T., RUBIC, NUMO Field, Ollama/Agent Zero",
+  "type": "module",
+  "scripts": {
+    "dev":   "tsx watch src/index.ts",
+    "start": "node --loader ts-node/esm src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "puppeteer-core": "^22.8.0",
+    "ws":             "^8.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "@types/ws":   "^8.5.10",
+    "tsx":         "^4.7.3",
+    "typescript":  "^5.4.5"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
