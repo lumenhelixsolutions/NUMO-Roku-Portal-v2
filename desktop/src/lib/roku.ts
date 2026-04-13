@@ -95,10 +95,10 @@ export async function launchApp(ip: string, appId: string): Promise<void> {
 }
 
 /** Returns true if a Roku device responds at the given IP. */
-export async function probeDevice(ip: string): Promise<boolean> {
+export async function probeDevice(ip: string, timeoutMs = 1500): Promise<boolean> {
   try {
     const res = await fetch(ecpUrl(ip, '/query/device-info'), {
-      signal: AbortSignal.timeout(1500),
+      signal: AbortSignal.timeout(timeoutMs),
     })
     return res.ok
   } catch {
@@ -116,6 +116,7 @@ export async function scanSubnet(
   subnet: string, // e.g. "192.168.1"
   onFound: (ip: string) => void,
   onProgress: (scanned: number, total: number) => void,
+  probeTimeoutMs = 1500,
 ): Promise<void> {
   const total = 254
   let scanned = 0
@@ -126,7 +127,7 @@ export async function scanSubnet(
     const batch = Array.from({ length: end - start + 1 }, (_, i) => `${subnet}.${start + i}`)
     await Promise.all(
       batch.map(async (ip) => {
-        const found = await probeDevice(ip)
+        const found = await probeDevice(ip, probeTimeoutMs)
         scanned++
         onProgress(scanned, total)
         if (found) onFound(ip)
