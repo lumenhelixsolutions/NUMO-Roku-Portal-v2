@@ -213,44 +213,20 @@ function App() {
     setScanTotal(subnets.length * 254)
 
     let totalScanned = 0
-    const newIps: string[] = []
-
-    for (const subnet of subnets) {
-      await scanSubnet(
-        subnet,
-        (ip) => {
-          // Use the ref-backed set for dedup — safe against stale closure captures.
-          if (scanFoundIpsRef.current.has(ip)) return
-          scanFoundIpsRef.current.add(ip)
-          newIps.push(ip)
-          // addDeviceIp fetches full device info and guards against duplicates
-          // via a functional setDevices update — no stale-closure issue there.
-          addDeviceIp(ip).catch(() => {})
-        },
-        (scanned) => {
-          totalScanned = scanned
-          setScanProgress(totalScanned)
-        },
-      )
-    }
-    // Use a Set to deduplicate IPs discovered in this scan run.  A single IP
-    // can appear in multiple subnets scanned sequentially, and the closure over
-    // `devices` only reflects the snapshot at scan-start, so we must also track
-    // what we've found this run to avoid redundant addDeviceIp calls.
-    const discoveredIps = new Set<string>()
 
     try {
       for (const subnet of subnets) {
         await scanSubnet(
           subnet,
           (ip) => {
-            if (discoveredIps.has(ip)) { return } // already seen in this scan run
-            discoveredIps.add(ip)
-            // probeDevice already confirmed this is a real Roku device; addDeviceIp
-            // may still fail if the device disappears between probe and fetch.
-            if (!devices.find((d) => d.ip === ip)) {
-              addDeviceIp(ip).catch(() => {})
-            }
+            // Use the ref-backed set for dedup — safe against stale closure captures.
+            // A single IP can appear in multiple subnets scanned sequentially, and
+            // the closure over `devices` only reflects the snapshot at scan-start.
+            if (scanFoundIpsRef.current.has(ip)) return
+            scanFoundIpsRef.current.add(ip)
+            // addDeviceIp fetches full device info and guards against duplicates
+            // via a functional setDevices update — no stale-closure issue there.
+            addDeviceIp(ip).catch(() => {})
           },
           (scanned) => {
             totalScanned = scanned
@@ -259,7 +235,8 @@ function App() {
         )
       }
 
-      const msg = discoveredIps.size > 0 ? `Found ${discoveredIps.size} Roku device(s)` : 'No Roku devices found'
+      const found = scanFoundIpsRef.current.size
+      const msg = found > 0 ? `Found ${found} Roku device(s)` : 'No Roku devices found'
       showStatus(msg)
       logActivity(`Scan complete: ${msg}`)
     } finally {

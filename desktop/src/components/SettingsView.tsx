@@ -97,6 +97,12 @@ export default function SettingsView({
   async function handleAddDevice() {
     const ip = manualIp.trim()
     if (!ip) return
+    // Validate IPv4 format before attempting a network connection.
+    const octets = ip.split('.')
+    if (octets.length !== 4 || octets.some((o) => !/^\d{1,3}$/.test(o) || parseInt(o, 10) > 255)) {
+      setAddError('Enter a valid IPv4 address (e.g. 192.168.1.83).')
+      return
+    }
     setAdding(true)
     setAddError(null)
     try {
