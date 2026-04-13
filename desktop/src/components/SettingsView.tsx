@@ -19,6 +19,12 @@ interface SettingsViewProps {
   onRemoveDevice: (ip: string) => void
 }
 
+interface DiagnosticsResult {
+  app_version: string
+  os: string
+  arch: string
+}
+
 function ToggleRow({
   label,
   description,
@@ -61,6 +67,32 @@ export default function SettingsView({
   const [manualIp, setManualIp] = useState('')
   const [addError, setAddError] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
+
+  // ── Rust diagnostics ──────────────────────────────────────────────────────
+  const [diagResult, setDiagResult] = useState<DiagnosticsResult | null>(null)
+  const [diagLoading, setDiagLoading] = useState(false)
+  const [diagError, setDiagError] = useState<string | null>(null)
+
+  async function handleRunDiagnostics() {
+    setDiagLoading(true)
+    setDiagError(null)
+    setDiagResult(null)
+    try {
+      const isTauri = typeof window !== 'undefined' && !!(window as { __TAURI__?: unknown }).__TAURI__
+      if (!isTauri) {
+        setDiagError('Diagnostics are only available in the desktop (Tauri) app.')
+        return
+      }
+      const { invoke } = await import('@tauri-apps/api/core')
+      const result = await invoke<DiagnosticsResult>('get_diagnostics')
+      setDiagResult(result)
+      onStatusMessage('Diagnostics collected.')
+    } catch (e) {
+      setDiagError(String(e))
+    } finally {
+      setDiagLoading(false)
+    }
+  }
 
   async function handleAddDevice() {
     const ip = manualIp.trim()
@@ -208,6 +240,39 @@ export default function SettingsView({
             checked={settings.diagnostics}
             onToggle={() => onToggle('diagnostics')}
           />
+          <div className="py-3.5 space-y-3">
+            <div>
+              <p className="text-sm font-medium text-white">Run Diagnostics</p>
+              <p className="text-xs text-slate-400 mt-0.5">Collect system information from the Rust backend.</p>
+            </div>
+            <button
+              onClick={handleRunDiagnostics}
+              disabled={diagLoading}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors"
+            >
+              {diagLoading ? '⏳ Running…' : '🩺 Run Diagnostics'}
+            </button>
+            {diagError && (
+              <p className="text-xs text-red-400">⚠️ {diagError}</p>
+            )}
+            {diagResult && (() => {
+              const diagFields = [
+                { label: 'App Version', value: diagResult.app_version },
+                { label: 'OS', value: diagResult.os },
+                { label: 'Architecture', value: diagResult.arch },
+              ]
+              return (
+                <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs bg-slate-900/60 border border-slate-700 rounded-lg p-3">
+                  {diagFields.map(({ label, value }) => (
+                    <div key={label}>
+                      <span className="text-slate-500">{label}: </span>
+                      <span className="text-slate-300">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
+          </div>
         </div>
       </section>
 
