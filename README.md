@@ -120,6 +120,16 @@ NUMO-Roku-Portal-v2/
 │   │   │   └── roku.ts         # ECP service layer (discovery, device info, key control)
 │   │   └── App.tsx             # Root component with centralized state
 │   └── src-tauri/              # Rust/Tauri shell
+├── server/                     # NUMO BYOS Semantic Streaming Server (Node.js/TypeScript)
+│   └── src/
+│       ├── ai/                 # Ollama AI router + Agent Zero sidecar
+│       ├── navigation/         # D₈ D-pad navigation, PAS monitor, NUMO Field
+│       ├── semantic/           # CDP engine, 64-D manifold builder
+│       └── sync/               # RUBIC-224 cipher, 32.C.U.B.I.T. framing
+├── roku/                       # Roku BrightScript Thin Client
+│   ├── source/                 # Channel entry point (main.brs)
+│   └── components/             # SceneGraph scene, StreamTask, RUBIC + CUBIT decoders
+├── pnpm-workspace.yaml         # PNPM workspace configuration
 └── README.md
 ```
 

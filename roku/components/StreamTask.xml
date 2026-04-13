@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  StreamTask — background WebSocket task for the NUMO Roku Thin Client.
+
+  Runs in a dedicated thread; communicates with NUMOScene exclusively via
+  observable SceneGraph fields (no shared globals, no direct UI manipulation).
+
+  Input fields (scene → task):
+    serverUrl     : WebSocket URL of the NUMO BYOS server (ws://host:port)
+    dpadKey       : D-pad key name set by the scene; cleared after sending
+    cancel        : set to true to stop the task gracefully
+
+  Output fields (task → scene):
+    status        : human-readable connection status string
+    rubicReady    : true once the RUBIC key handshake is complete
+    frameInfo     : JSON — { seq, pas, lod, vw, vh }
+    frameElements : JSON — array of { role, x, y, w, h }
+    telemetry     : raw JSON telemetry message forwarded from server
+    navUpdate     : raw JSON nav message forwarded from server
+    aiResponse    : raw JSON ai_response message forwarded from server
+    agentLine     : raw JSON agent message forwarded from server
+-->
+<component name="StreamTask" extends="Task">
+  <interface>
+    <!-- Input fields -->
+    <field id="serverUrl"      type="string"  value="" />
+    <field id="dpadKey"        type="string"  value="" />
+    <field id="cancel"         type="boolean" value="false" />
+    <!-- Output fields -->
+    <field id="status"         type="string"  value="idle" />
+    <field id="rubicReady"     type="boolean" value="false" />
+    <field id="frameInfo"      type="string"  value="" />
+    <field id="frameElements"  type="string"  value="" />
+    <field id="telemetry"      type="string"  value="" />
+    <field id="navUpdate"      type="string"  value="" />
+    <field id="aiResponse"     type="string"  value="" />
+    <field id="agentLine"      type="string"  value="" />
+  </interface>
+
+  <!-- Shared cipher and frame-decode helpers (order matters: rubic before cubit). -->
+  <script type="text/brightscript" uri="pkg:/components/rubic.brs" />
+  <script type="text/brightscript" uri="pkg:/components/cubit.brs" />
+  <script type="text/brightscript" uri="pkg:/components/StreamTask.brs" />
+</component>
