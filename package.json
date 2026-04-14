@@ -9,6 +9,8 @@
     "server"
   ],
   "scripts": {
+    "preinstall": "node -e \"var m=(process.env.npm_config_user_agent||'').match(/pnpm\\/(\\d+)/);if(m&&+m[1]<9){console.error('\\n\\x1b[31m❌ pnpm '+m[1]+'.x detected — this project requires pnpm >= 9.\\n   Run: npm install -g pnpm@9\\x1b[0m\\n');process.exit(1)}\"",
+    "dev": "pnpm -r --parallel run dev",
     "dev:desktop": "pnpm --filter numo-portal-desktop run dev",
     "build:desktop": "pnpm --filter numo-portal-desktop run build",
     "dev:server": "pnpm --filter numo-byos-server run dev",

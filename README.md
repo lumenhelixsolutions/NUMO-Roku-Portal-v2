@@ -100,23 +100,25 @@ pnpm install
 npm install
 ```
 
-### 2. Run the Desktop Development Server
+### 2. Run Everything (Desktop + Server)
 
 ```bash
-# Vite-only (browser preview — no Tauri/Rust required)
-cd desktop
-npm run dev          # http://localhost:5173
+# From the repository root — starts both the desktop and server dev processes
+pnpm run dev
+```
+
+### 3. Run Individual Components
+
+```bash
+# Vite-only desktop (browser preview — no Tauri/Rust required)
+pnpm run dev:desktop   # http://localhost:5173
+
+# BYOS Streaming Server only
+pnpm run dev:server    # tsx watch — restarts on file changes
 
 # Full Tauri desktop app (requires Rust toolchain)
 cd desktop
 npm run tauri:dev
-```
-
-### 3. Run the BYOS Streaming Server
-
-```bash
-cd server
-npm run dev          # tsx watch — restarts on file changes
 ```
 
 ### 4. Build for Production
