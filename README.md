@@ -78,33 +78,88 @@ A cross-platform device management suite for Roku streaming devices, built with 
 
 ## 🚀 Quick Start
 
-### 1. Download & Install
+### Prerequisites
+
+- **Node.js** ≥ 18.12.0 (v20 LTS or v22 LTS recommended)
+- **pnpm** ≥ 9.0.0 — install with `npm install -g pnpm@9`
+- **Rust** ≥ 1.70 (for the Tauri desktop shell)
+
+> **Note — pnpm version matters.**  pnpm 8.0.0 causes `ERR_INVALID_THIS` fetch errors with Node.js 20+.  Always use pnpm ≥ 9 (or the exact version pinned in `package.json`).  If you see those errors, run `npm install -g pnpm@9` and retry.
+
+### 1. Clone & Install Dependencies
 
 ```bash
 # Clone the repository
 git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
 cd NUMO-Roku-Portal-v2
 
-# Install dependencies
+# Install all workspace dependencies with pnpm (recommended)
+pnpm install
+
+# — OR — with plain npm (also supported via npm workspaces)
 npm install
-
-# Install Rust dependencies (for desktop)
-cd desktop/src-tauri && cargo build --release
-cd ../..
 ```
 
-### 2. Run the Development Server
+### 2. Run the Desktop Development Server
 
 ```bash
+# Vite-only (browser preview — no Tauri/Rust required)
 cd desktop
-npm run dev
+npm run dev          # http://localhost:5173
+
+# Full Tauri desktop app (requires Rust toolchain)
+cd desktop
+npm run tauri:dev
 ```
 
-### 3. Build for Production
+### 3. Run the BYOS Streaming Server
 
 ```bash
+cd server
+npm run dev          # tsx watch — restarts on file changes
+```
+
+### 4. Build for Production
+
+```bash
+# Vite frontend bundle
 cd desktop
 npm run build
+
+# Full Tauri installer (requires Rust toolchain)
+cd desktop
+npm run tauri:build
+```
+
+---
+
+## 🔧 Troubleshooting Dependency Installs
+
+### `ERR_INVALID_THIS` with pnpm
+
+**Cause:** pnpm 8.0.0 has a known incompatibility with Node.js 20+ — its internal HTTP fetch implementation calls methods on the wrong `this` context.
+
+**Fix:**
+```bash
+npm install -g pnpm@9           # upgrade to pnpm 9.x
+pnpm store prune                # clear stale cache
+pnpm install
+```
+
+### `npm install` only audits 1 package
+
+**Cause:** Running `npm install` at the repository root with an old version of this repo would only see the root `package.json` (which had no dependencies), because npm ignores `pnpm-workspace.yaml`.
+
+**Fix (already applied):** The root `package.json` now includes a `"workspaces"` field so `npm install` traverses `desktop/` and `server/` automatically.
+
+### Stale lock files / cache corruption
+
+```bash
+# Remove all installed modules and lock files, then reinstall
+rm -rf node_modules desktop/node_modules server/node_modules
+rm -f pnpm-lock.yaml package-lock.json
+pnpm store prune
+pnpm install
 ```
 
 ---

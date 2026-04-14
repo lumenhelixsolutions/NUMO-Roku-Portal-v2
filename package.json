@@ -3,10 +3,16 @@
   "version": "2.0.0",
   "description": "Commercial-grade semantic streaming deployment package for Roku devices",
   "private": true,
-  "packageManager": "pnpm@8.0.0",
+  "packageManager": "pnpm@9.15.4",
+  "workspaces": [
+    "desktop",
+    "server"
+  ],
   "scripts": {
-    "dev:desktop": "cd desktop && npm run tauri dev",
-    "build:desktop": "cd desktop && npm run tauri build",
+    "dev:desktop": "pnpm --filter numo-portal-desktop run dev",
+    "build:desktop": "pnpm --filter numo-portal-desktop run build",
+    "dev:server": "pnpm --filter numo-byos-server run dev",
+    "install:all": "pnpm install",
     "test": "pnpm -r run test",
     "lint": "pnpm -r run lint",
     "format": "pnpm -r run format"
@@ -18,7 +24,7 @@
     "url": "https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
+    "node": ">=18.12.0",
+    "pnpm": ">=9.0.0"
   }
 }
