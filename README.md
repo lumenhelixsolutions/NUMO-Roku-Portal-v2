@@ -1,7 +1,11 @@
 # NUMO-Roku-Portal-v2
 
 <p align="center">
-  <img src="docs/assets/logo.svg" alt="NUMO-Roku-Portal-v2 logo" width="160">
+  <img src="docs/assets/hero.svg" alt="NUMO-Roku-Portal-v2 header" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="NUMO-Roku-Portal-v2 logo" width="120">
 </p>
 
 <h3 align="center">Stream. Control. Secure.</h3>
@@ -9,9 +13,9 @@
 <p align="center">Cross-platform Roku device management and semantic streaming suite.</p>
 
 <p align="center">
-  <a href="https://lumenhelixsolutions.github.io/NUMO-Roku-Portal-v2/">Launch Page</a>
+  <a href="https://lumenhelixlab.github.io/NUMO-Roku-Portal-v2/">Launch Page</a>
   <span> · </span>
-  <a href="https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2">GitHub</a>
+  <a href="https://github.com/lumenhelixlab/NUMO-Roku-Portal-v2">GitHub</a>
   <span> · </span>
   <a href="https://lumenhelix.com">LumenHelix</a>
 </p>
@@ -31,7 +35,7 @@ NUMO-Roku-Portal-v2 is the cross-platform device management suite for Roku strea
 ### macOS / Linux
 
 ```bash
-git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
+git clone https://github.com/lumenhelixlab/NUMO-Roku-Portal-v2.git
 cd NUMO-Roku-Portal-v2
 pnpm install
 cd desktop && npm run dev
@@ -40,7 +44,7 @@ cd desktop && npm run dev
 ### Windows (PowerShell)
 
 ```powershell
-git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
+git clone https://github.com/lumenhelixlab/NUMO-Roku-Portal-v2.git
 Set-Location NUMO-Roku-Portal-v2
 pnpm install
 cd desktop
@@ -50,7 +54,7 @@ npm run dev
 ### Windows (Git Bash / WSL)
 
 ```bash
-git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
+git clone https://github.com/lumenhelixlab/NUMO-Roku-Portal-v2.git
 cd NUMO-Roku-Portal-v2
 pnpm install
 cd desktop && npm run dev
