@@ -1,208 +1,141 @@
-# NUMO Roku Portal v2
+# NUMO-Roku-Portal-v2
 
-A cross-platform device management suite for Roku streaming devices, built with Tauri, React, Tailwind CSS, and Kotlin.
+<p align="center">
+  <a href="https://lumenhelix.com">
+    <img src="docs/assets/lumenhelix-logo.svg" alt="LumenHelix Solutions" width="180">
+  </a>
+</p>
 
----
+<h3 align="center">Cross-platform Roku device management and semantic streaming suite</h3>
 
-## ✨ Features
-
-### Desktop Application (Tauri v2)
-- ✅ Ultra-lightweight launcher (30-80 MB idle memory)
-- ✅ Automated system diagnostics (Node, Python, Ollama, GPU, RAM)
-- ✅ Professional onboarding wizard with React + Tailwind CSS
-- ✅ Real-time telemetry dashboard (PAS, memory, latency, connection status)
-- ✅ Sidecar process management with auto-restart on failure
-- ✅ Silent background service deployment via NSSM
-- ✅ Embedded offline documentation with multi-window support
-- ✅ Capability-based security model (no broad OS access)
-
-### Installation Package
-- ✅ NSIS-based silent installer with comprehensive error handling
-- ✅ Automated dependency provisioning (Node.js, Python, Ollama)
-- ✅ Pre/post-installation lifecycle hooks
-- ✅ Environment variable configuration with fallback paths
-- ✅ Service registration and auto-restart on reboot
-- ✅ Installation logging and rollback support
-- ✅ Admin elevation enforcement
-- ✅ Firewall rule verification
-
-### Roku Guest Integration
-- ✅ SSDP/UPnP device discovery over local network
-- ✅ ECP (External Control Protocol) REST API integration
-- ✅ D₈ dihedral group mathematics for focus navigation
-- ✅ Deterministic state synchronization (<250ms latency)
-- ✅ Phase Alignment Score (PAS) monitoring
-- ✅ Memory-efficient SceneGraph rendering
-
-### Android Mobile Remote
-- ✅ Kotlin SDK with native coroutine support
-- ✅ SSDP M-SEARCH device discovery
-- ✅ ECP keypress commands with timeout handling
-- ✅ RUBIC reversible encryption for command resilience
-- ✅ Error callbacks and connection state management
-- ✅ Graceful degradation on network failures
-
-### Semantic Streaming Engine
-- ✅ Chrome DevTools Protocol (CDP) integration
-- ✅ Real-time DOM extraction and high-dimensional mapping
-- ✅ 32.C.U.B.I.T. protocol encoding/decoding
-- ✅ Adaptive LOD (Level of Detail) downshifting
-- ✅ Proactive memory management on constrained devices
-- ✅ Network bandwidth optimization
+<p align="center">
+  <a href="https://lumenhelixsolutions.github.io/NUMO-Roku-Portal-v2/">
+    <img src="https://img.shields.io/badge/Launch_Page-NUMO-Roku-Portal-v2-00D4FF?style=flat-square&logo=githubpages&logoColor=white" alt="Launch Page">
+  </a>
+  <a href="https://lumenhelix.com">
+    <img src="https://img.shields.io/badge/Built_by-LumenHelix-7C3AED?style=flat-square" alt="Built by LumenHelix">
+  </a>
+  <img src="https://img.shields.io/badge/license-MIT-8A95A8?style=flat-square" alt="License">
+</p>
 
 ---
 
-## 💻 System Requirements
+**NUMO-Roku-Portal-v2** is part of the [LumenHelix Solutions](https://lumenhelix.com) portfolio — applied symbolic dynamics & reversible computation for deterministic, traceable AI systems.
 
-### Windows Host (Minimum)
-- **OS**: Windows 10 or Windows 11
-- **CPU**: Intel Core i5 / AMD Ryzen 5 (AVX2 support required)
-- **RAM**: 16 GB (32 GB+ recommended for local inference)
-- **Storage**: 50 GB free (for AI models)
-- **GPU**: NVIDIA (CUDA) or AMD (ROCm) recommended; CPU fallback available
-- **.NET Framework**: 4.8+
-- **Network**: Gigabit Ethernet or 802.11ac Wi-Fi
+NUMO-Roku-Portal-v2 is the LumenHelix cross-platform device management suite for Roku streaming. It combines a Tauri v2 desktop launcher, a Node.js BYOS semantic streaming server, a BrightScript Roku thin client, and a Kotlin Android remote — all communicating through RUBIC-encrypted 32.C.U.B.I.T. frames.
 
-### Roku Display Device
-- **Model**: Roku Streaming Stick 4K, Roku Premiere+, or newer
-- **OS**: Roku OS 9.0+
-- **Developer Settings**: Enabled
-- **Control by Mobile Apps**: Enabled
-- **Network**: Same Wi-Fi network as host
+## Why this exists
 
-### Android Mobile Remote
-- **OS**: Android 8.0+
-- **Network**: Same Wi-Fi network as host
+- **Own the pipeline.** Host the streaming server locally with no required cloud intermediary.
+- **Secure by design.** Capability-based Tauri permissions and RUBIC-224 command encryption.
+- **Extend to any screen.** Add Roku channels, Android remotes, or new semantic adapters without rewriting the core.
 
----
+## Quick start
 
-## 🚀 Quick Start
+Install and run NUMO-Roku-Portal-v2 in under two minutes.
 
-### Prerequisites
-
-- **Node.js** ≥ 18.12.0 (v20 LTS or v22 LTS recommended)
-- **pnpm** ≥ 9.0.0 — install with `npm install -g pnpm@9`
-- **Rust** ≥ 1.70 (for the Tauri desktop shell)
-
-> **Note — pnpm version matters.**  pnpm 8.0.0 causes `ERR_INVALID_THIS` fetch errors with Node.js 20+.  Always use pnpm ≥ 9 (or the exact version pinned in `package.json`).  If you see those errors, run `npm install -g pnpm@9` and retry.
-
-### 1. Clone & Install Dependencies
+### macOS / Linux
 
 ```bash
-# Clone the repository
+# Clone
 git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
 cd NUMO-Roku-Portal-v2
 
-# Install all workspace dependencies with pnpm (recommended)
+# Install & run
+git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
+cd NUMO-Roku-Portal-v2
 pnpm install
-
-# — OR — with plain npm (also supported via npm workspaces)
-npm install
+cd desktop && npm run dev
 ```
 
-### 2. Run the Desktop Development Server
+### Windows (PowerShell)
 
-```bash
-# Vite-only (browser preview — no Tauri/Rust required)
-cd desktop
-npm run dev          # http://localhost:5173
+```powershell
+# Clone
+git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
+Set-Location NUMO-Roku-Portal-v2
 
-# Full Tauri desktop app (requires Rust toolchain)
-cd desktop
-npm run tauri:dev
-```
-
-### 3. Run the BYOS Streaming Server
-
-```bash
-cd server
-npm run dev          # tsx watch — restarts on file changes
-```
-
-### 4. Build for Production
-
-```bash
-# Vite frontend bundle
-cd desktop
-npm run build
-
-# Full Tauri installer (requires Rust toolchain)
-cd desktop
-npm run tauri:build
-```
-
----
-
-## 🔧 Troubleshooting Dependency Installs
-
-### `ERR_INVALID_THIS` with pnpm
-
-**Cause:** pnpm 8.0.0 has a known incompatibility with Node.js 20+ — its internal HTTP fetch implementation calls methods on the wrong `this` context.
-
-**Fix:**
-```bash
-npm install -g pnpm@9           # upgrade to pnpm 9.x
-pnpm store prune                # clear stale cache
+# Install & run
+git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
+Set-Location NUMO-Roku-Portal-v2
 pnpm install
+cd desktop
+npm run dev
 ```
 
-### `npm install` only audits 1 package
-
-**Cause:** Running `npm install` at the repository root with an old version of this repo would only see the root `package.json` (which had no dependencies), because npm ignores `pnpm-workspace.yaml`.
-
-**Fix (already applied):** The root `package.json` now includes a `"workspaces"` field so `npm install` traverses `desktop/` and `server/` automatically.
-
-### Stale lock files / cache corruption
+### Windows (Git Bash / WSL)
 
 ```bash
-# Remove all installed modules and lock files, then reinstall
-rm -rf node_modules desktop/node_modules server/node_modules
-rm -f pnpm-lock.yaml package-lock.json
-pnpm store prune
+git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
+cd NUMO-Roku-Portal-v2
+git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
+cd NUMO-Roku-Portal-v2
 pnpm install
+cd desktop && npm run dev
 ```
 
----
+> **Device note:** NUMO-Roku-Portal-v2 is tested on Windows 11, macOS Sonoma, Ubuntu 22.04/24.04, and modern mobile browsers.
 
-## 🏗 Project Structure
+## Full documentation
+
+Visit the launch page for architecture, API reference, and deployment guides:  
+**https://lumenhelixsolutions.github.io/NUMO-Roku-Portal-v2/**
+
+## Features
+
+| Feature | What it gives you |
+|---------|-------------------|
+| Tauri desktop launcher | React + Tailwind onboarding, telemetry dashboard, sidecar management, and silent NSSM service deployment. |
+| BYOS semantic server | Chrome DevTools Protocol capture, 64-D manifold mapping, RUBIC-encrypted CUBIT frames over WebSocket. |
+| Roku thin client | BrightScript SceneGraph channel that receives encrypted frames and renders interactive overlays at 32 Hz. |
+| Kotlin Android remote | SSDP discovery, ECP keypress commands, RUBIC reversible encryption, and graceful network degradation. |
+
+## Architecture at a glance
 
 ```
 NUMO-Roku-Portal-v2/
-├── desktop/                    # Tauri + React desktop application
-│   ├── src/
-│   │   ├── components/         # UI components (Dashboard, Devices, Apps, Settings)
-│   │   ├── lib/
-│   │   │   └── roku.ts         # ECP service layer (discovery, device info, key control)
-│   │   └── App.tsx             # Root component with centralized state
-│   └── src-tauri/              # Rust/Tauri shell
-├── server/                     # NUMO BYOS Semantic Streaming Server (Node.js/TypeScript)
-│   └── src/
-│       ├── ai/                 # Ollama AI router + Agent Zero sidecar
-│       ├── navigation/         # D₈ D-pad navigation, PAS monitor, NUMO Field
-│       ├── semantic/           # CDP engine, 64-D manifold builder
-│       └── sync/               # RUBIC-224 cipher, 32.C.U.B.I.T. framing
-├── roku/                       # Roku BrightScript Thin Client
-│   ├── source/                 # Channel entry point (main.brs)
-│   └── components/             # SceneGraph scene, StreamTask, RUBIC + CUBIT decoders
-├── pnpm-workspace.yaml         # PNPM workspace configuration
-└── README.md
+├── desktop/     Tauri v2 + React + Vite — Windows launcher
+├── server/      Node.js/TypeScript BYOS semantic streaming engine
+├── roku/        BrightScript SceneGraph thin client
+└── android/     Kotlin SDK and mobile remote
 ```
 
+## Development
+
+```bash
+# Desktop Vite preview (no Rust required)
+cd desktop
+npm run dev
+
+# Full Tauri desktop app
+cd desktop
+npm run tauri:dev
+
+# BYOS server
+cd server
+npm run dev
+```
+
+## Roadmap
+
+- [ ] Plug-and-play semantic adapter marketplace
+- [ ] Headless installer and auto-update channel
+- [ ] Cross-platform Android remote publishing pipeline
+
+## Support & consulting
+
+Need deterministic AI systems with full traceability? LumenHelix builds reversible computation kernels, governance layers, and end-to-end AI integrations.
+
+- **Website:** https://lumenhelix.com
+- **Services:** AI diagnostics, B.Y.O. support packages, governance audits
+- **Research:** TEN² kernel, R.U.B.I.C. boundary discipline, C.O.R.E. constraint lens
+
+## License
+
+Released under the MIT License.
+
 ---
 
-## 🛠 Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Desktop shell | Tauri v2 (Rust) |
-| Frontend | React 18 + TypeScript |
-| Styling | Tailwind CSS v3 |
-| Build tool | Vite |
-| Device protocol | Roku ECP (HTTP/XML) |
-| Mobile remote | Kotlin (Android) |
-
----
-
-## 📄 License
-
-Copyright © Lumen Helix Solutions. All rights reserved.
+<p align="center">
+  <sub>Engineered by <a href="https://lumenhelix.com">LumenHelix Solutions</a> — Applied Symbolic Dynamics & Reversible Computation.</sub>
+</p>
