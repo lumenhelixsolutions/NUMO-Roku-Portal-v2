@@ -1,0 +1,40 @@
+/* NUMO-Roku-Portal-v2 — product-specific theme */
+
+:root {
+  --bg-deep: #0B1C1A;
+  --bg-surface: #112826;
+  --text-primary: #F9FAFB;
+  --text-secondary: #E5E7EB;
+  --accent: #14B8A6;
+  --secondary: #8B5CF6;
+  --accent-glow: #14B8A659;
+  --accent-soft: #14B8A61A;
+}
+
+.hero-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-visual svg {
+  width: min(55vw, 520px);
+  height: auto;
+  opacity: 0.55;
+}
+
+@media (max-width: 768px) {
+  .hero-visual svg { width: 85vw; opacity: 0.35; }
+}
+
+.tagline::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.btn-primary { background: linear-gradient(135deg, var(--accent), #0D9488); }
+.stat-value { color: var(--accent); text-shadow: 0 0 20px rgba(20, 184, 166, 0.35); }
