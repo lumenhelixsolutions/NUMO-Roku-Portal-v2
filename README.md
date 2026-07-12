@@ -33,8 +33,6 @@ NUMO-Roku-Portal-v2 is the cross-platform device management suite for Roku strea
 ```bash
 git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
 cd NUMO-Roku-Portal-v2
-git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
-cd NUMO-Roku-Portal-v2
 pnpm install
 cd desktop && npm run dev
 ```
@@ -42,8 +40,6 @@ cd desktop && npm run dev
 ### Windows (PowerShell)
 
 ```powershell
-git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
-Set-Location NUMO-Roku-Portal-v2
 git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
 Set-Location NUMO-Roku-Portal-v2
 pnpm install
@@ -54,8 +50,6 @@ npm run dev
 ### Windows (Git Bash / WSL)
 
 ```bash
-git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
-cd NUMO-Roku-Portal-v2
 git clone https://github.com/lumenhelixsolutions/NUMO-Roku-Portal-v2.git
 cd NUMO-Roku-Portal-v2
 pnpm install
